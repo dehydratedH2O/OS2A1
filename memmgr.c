@@ -2,29 +2,29 @@
 
 void KernMemInit(void)
 {
+    //TODO: optimize thisLink/currLink junk
     void* currLink;
+    PMEMPAGE thisLink;
     int i;
 
     printf("headOfMem: %08x\n", headOfMem);
     currLink = headOfMem;
     printf("currLink: %08x\n", currLink);
+    thisLink = currLink;
+    thisLink->llPages.pPrev = NULL;
 
     for(i = 0; i < NUMPAGES-1; i++)
     {
         printf("%i ", i);
-        PMEMPAGE thisLink = currLink;
         printf("thisLink: %08x\n", thisLink);
         thisLink->llPages.pNext = currLink + sizeof(MEMPAGE);
         printf("pNext: %08x\n", thisLink->llPages.pNext);
-        if (currLink != headOfMem)
-        {
-            thisLink->llPages.pPrev = currLink - sizeof(MEMPAGE);
-            printf("pPrev: %08x\n", thisLink->llPages.pPrev);
-        }
+        thisLink->llPages.pPrev = currLink - sizeof(MEMPAGE);
+        printf("pPrev: %08x\n", thisLink->llPages.pPrev);
         currLink = thisLink->llPages.pNext;
+        thisLink = currLink;
     }
 
-    PMEMPAGE thisLink = currLink;
     thisLink->llPages.pPrev = currLink - sizeof(MEMPAGE);
     thisLink->llPages.pNext = NULL;
     printf("%i thisLink: %08x\npNext: %08x\npPrev:%08x\n",
