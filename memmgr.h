@@ -9,6 +9,7 @@
 #define PAGESIZE 4096
 #define NUMPAGES RAMSIZE/PAGESIZE
 
+#define STATUS
 #define DEBUG
 
 unsigned int sizeOfLists = 0;

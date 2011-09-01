@@ -2,6 +2,7 @@
 #include "stdio.h"
 #include "ll.h"
 #include "memmgr.c"
+#include "time.h"
 
 int main(int argc, char * argv[]) 
 {
@@ -28,7 +29,29 @@ int main(int argc, char * argv[])
 
     printf("testing memmgr.c\n");
     KernMemAllocPages(1);
-    KernMemFreePage(0);
+    KernMemAllocPages(15);
+    //alloc almost all pages
+    void* testPage = KernMemAllocPages(NUMPAGES - 117);
+    //try to alloc too many pages
+    KernMemAllocPages(58000);
+    //test freeing a page
+    KernMemFreePage(testPage);
+    //free enough for the next alloc, randomly
+    int i, iH, iL;
+    void *high, *low;
+    void *toFree;
+    srand(time(NULL));
+    low = headOfMem;
+    high = headOfMem + (NUMPAGES*sizeof(MEMPAGE));
+    iH = (int) high;
+    iL = (int) low;
+    for (i = 0; i < 100; i++)
+    {
+        toFree = rand() % (iH - iL + 1) + iL;
+        KernMemFreePage((void *)toFree);
+    }
+    //try to alloc the num of free pages, but should fail since they're not
+    //contiguous
 
     //free the RAM
     free(ramdisk);
