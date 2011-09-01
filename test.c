@@ -3,7 +3,6 @@
 #include "ll.h"
 #include "memmgr.c"
 
-//test
 
 int main(int argc, char * argv[]) 
 {
