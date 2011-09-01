@@ -14,10 +14,6 @@ int main(int argc, char * argv[])
     printf("testing memmgr.h\n");
     MEMPAGE testMp;
 
-    printf("testing memmgr.c\n");
-    KernMemAllocPages(0);
-    KernMemFreePage(0);
-
     printf("mallocing\n");
     
     //alloc RAM
@@ -29,6 +25,10 @@ int main(int argc, char * argv[])
 
     printf("KernMemInit\n");
     KernMemInit();
+
+    printf("testing memmgr.c\n");
+    KernMemAllocPages(1);
+    KernMemFreePage(0);
 
     //free the RAM
     free(ramdisk);

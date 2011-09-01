@@ -9,7 +9,7 @@
 #define PAGESIZE 4096
 #define NUMPAGES RAMSIZE/PAGESIZE
 
-#define BYTE unsigned char
+#define DEBUG
 
 unsigned int sizeOfLists = 0;
 unsigned int pagesUsed = 0;
