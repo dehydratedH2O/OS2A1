@@ -3,6 +3,8 @@
 #include "ll.h"
 #include "memmgr.c"
 
+//test
+
 int main(int argc, char * argv[]) 
 {
     printf("memory manager test\nRAMSIZE:\t%iB\nPAGESIZE:\t%iB\nNUMPAGES:\t%i\n",
