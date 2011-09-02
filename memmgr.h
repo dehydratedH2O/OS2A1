@@ -7,7 +7,7 @@
 //size of RAM to malloc. I use 64MB since I'm in a VM with 512MB
 #define RAMSIZE 65536000
 #define PAGESIZE 4096
-#define NUMPAGES RAMSIZE/PAGESIZE
+#define NUMPAGES (RAMSIZE/PAGESIZE)
 
 #define STATUS
 #define DEBUG

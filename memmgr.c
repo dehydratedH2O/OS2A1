@@ -16,6 +16,7 @@ void KernMemInit(void)
 #endif
     thisLink = currLink;
     //fix first page
+    //TODO: fix this
     thisLink->llPages.pPrev = NULL;
 
     for(i = 0; i < NUMPAGES-1; i++)
@@ -44,7 +45,7 @@ void KernMemInit(void)
             ++i, thisLink, thisLink->llPages.pNext, thisLink->llPages.pPrev);
 #endif
     
-    sizeOfLists = currLink - headOfMem;
+    sizeOfLists = currLink - headOfMem + sizeof(MEMPAGE);
 #ifdef DEBUG
     printf("tot size of mgmt links: %iB for %i pages\n", sizeOfLists, NUMPAGES);
 #endif
