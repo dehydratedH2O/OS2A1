@@ -2,50 +2,46 @@
 
 void KernMemInit(void)
 {
-    //TODO: optimize thisLink/currLink junk
-    void* currLink;
-    PMEMPAGE thisLink;
+    PMEMPAGE currMP, prevMP, nextMP;
     int i;
 
 #ifdef DEBUG
     printf("headOfMem: %08x\n", headOfMem);
 #endif
-    currLink = headOfMem;
-#ifdef DEBUG
-    printf("currLink: %08x\n", currLink);
-#endif
-    thisLink = currLink;
-    //fix first page
-    //TODO: fix this
-    thisLink->llPages.pPrev = NULL;
 
-    for(i = 0; i < NUMPAGES-1; i++)
+    currMP = headOfMem;
+
+    for(i = 0; i < NUMPAGES; i++)
     {
 #ifdef DEBUG
         printf("%i ", i);
-        printf("thisLink: %08x\n", thisLink);
+        printf("currMP: %08x\n", currMP);
 #endif
-        thisLink->llPages.pNext = currLink + sizeof(MEMPAGE);
+
+        currMP->llPages.pNext = (void*) (currMP + 1);
+
 #ifdef DEBUG
-        printf("pNext: %08x\n", thisLink->llPages.pNext);
+        printf("nextMP: %08x(%08x)\n", currMP->llPages.pNext, currMP + 1);
 #endif
-        thisLink->llPages.pPrev = currLink - sizeof(MEMPAGE);
+
+        currMP->llPages.pPrev = (void *) (currMP - 1);
+
 #ifdef DEBUG
-        printf("pPrev: %08x\n", thisLink->llPages.pPrev);
+        printf("prevMP: %08x(%08x)\n", currMP->llPages.pPrev, currMP - 1);
 #endif
-        currLink = thisLink->llPages.pNext;
-        thisLink = currLink;
+
+        currMP = (void *) currMP->llPages.pNext;
     }
 
     //fix last page
-    thisLink->llPages.pPrev = currLink - sizeof(MEMPAGE);
-    thisLink->llPages.pNext = NULL;
-#ifdef DEBUG
-    printf("%i thisLink: %08x\npNext: %08x\npPrev:%08x\n",
-            ++i, thisLink, thisLink->llPages.pNext, thisLink->llPages.pPrev);
-#endif
+    currMP->llPages.pNext = NULL;
+
+    sizeOfLists = ((void*)(currMP + 1)) - headOfMem;
+
+    //fix first page
+    currMP = headOfMem;
+    currMP->llPages.pPrev = NULL;
     
-    sizeOfLists = currLink - headOfMem + sizeof(MEMPAGE);
 #ifdef DEBUG
     printf("tot size of mgmt links: %iB for %i pages\n", sizeOfLists, NUMPAGES);
 #endif
@@ -58,24 +54,22 @@ void KernMemInit(void)
 #endif
 
     usedPages = headOfMem;
-    //TODO: fix this calculation
-    freePages = headOfMem + ((pagesUsed) * sizeof(MEMPAGE));
+    freePages = headOfMem + (pagesUsed * sizeof(MEMPAGE));
   
 #ifdef DEBUG
     printf("usedPages: %08x\n", usedPages);
     printf("freePages: %08x\n", freePages);
 #endif
 
-    PMEMPAGE lastUsed = freePages->llPages.pPrev;
-#ifdef DEBUG
-    printf("lastUsed: %08x\n", freePages->llPages.pPrev);
-#endif
-    freePages->llPages.pPrev = NULL;
-    lastUsed->llPages.pNext = NULL;
+    PMEMPAGE lastUsed = (void *) freePages->llPages.pPrev;
 
 #ifdef DEBUG
+    printf("lastUsed: %08x\n", lastUsed);
     printf("sizeof MEMPAGE: %iB\n", sizeof(MEMPAGE));
 #endif
+
+    freePages->llPages.pPrev = NULL;
+    lastUsed->llPages.pNext = NULL;
 
     return;
 }
@@ -84,8 +78,7 @@ void* KernMemAllocPages(int n)
 {
     int contig = 0;
     PMEMPAGE currPage = freePages;
-    PMEMPAGE nextFree;
-    PMEMPAGE prevFree;
+    PMEMPAGE nextFree, prevFree;
 
 #ifdef STATUS
     printf("allocing %i pages\n", n);
@@ -138,9 +131,11 @@ void* KernMemAllocPages(int n)
     printf("currPage(-n): %08x(%08x)\n", currPage, currPage - n);
 #endif
     //if we're taking from the head of freePages, reset it
+    //
     if (currPage - n + 1 == freePages)
     {
         freePages = nextFree;
+
 #ifdef DEBUG
         printf("freePages RESET to %08x\n", freePages);
 #endif

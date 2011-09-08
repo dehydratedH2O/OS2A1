@@ -9,4 +9,6 @@ typedef struct LLSTRUCT
     struct LLSTRUCT *pNext;
 } LINKEDLIST, *PLINKEDLIST;
 
+void unlinkLL(PLINKEDLIST *ppllHead, PLINKEDLIST pllRem);
+
 #endif

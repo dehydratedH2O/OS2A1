@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
 
     printf("KernMemInit\n");
     KernMemInit();
-
+/*
     printf("testing memmgr.c\n");
     KernMemAllocPages(1);
     KernMemAllocPages(15);
@@ -53,7 +53,7 @@ int main(int argc, char * argv[])
     }
     //try to alloc the num of free pages, but should fail since they're not
     //contiguous
-
+*/
     //free the RAM
     free(ramdisk);
     printf("ramdisk freed\n");
