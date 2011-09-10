@@ -87,25 +87,31 @@ void* KernMemAllocPages(int n)
     printf("freePages: %08x\n", freePages);
 #endif
 
-    do {
+    while (currPage != NULL) {
 #ifdef DEBUG
         printf("currPage: %08x\t%i/%i\n", currPage, contig, n);
-        printf("currPage prev: %08x(%08x)\n", currPage->llPages.pPrev,
-                currPage - sizeof(MEMPAGE));
+        printf("next: %08x(%08x)\n", currPage->llPages.pNext,
+                currPage + 1);
+        printf("prev: %08x(%08x)\n", currPage->llPages.pPrev,
+                currPage - 1);
 #endif
-        if (currPage->llPages.pPrev == currPage - 1 ||
-                currPage->llPages.pPrev == NULL || currPage == freePages)
+        if (currPage->llPages.pNext == (void*) (currPage + 1))
+        {
             ++contig;
+            if (contig >= n)
+                break;
+        }
         else
             contig = 0;
-        currPage = currPage->llPages.pNext;
-    } while (currPage->llPages.pNext != NULL && contig < n);
+        currPage = (void*) currPage->llPages.pNext;
+    };
+    
     if (currPage->llPages.pNext == NULL && contig < n)
     {
         //couldn't find space
 #ifdef DEBUG
         printf("currPage: %08x\n", currPage);
-        printf("currPage next: %08x\ncontig: %i/%i\n",
+        printf("next: %08x\ncontig: %i/%i\n",
                 currPage->llPages.pNext, contig, n);
 #endif
 #ifdef STATUS
@@ -113,39 +119,35 @@ void* KernMemAllocPages(int n)
 #endif
         return NULL;
     }
+
     //first remove the pages from the free list
-    currPage = currPage->llPages.pPrev;
-    nextFree = currPage->llPages.pNext;
-    prevFree = currPage - n;
+    nextFree = (void*) currPage->llPages.pNext;
+    prevFree = (void*) (currPage - n + 1);
+    prevFree = (void*) prevFree->llPages.pPrev;
+
 #ifdef DEBUG
     printf("nextFree: %08x\n", nextFree);
     printf("prevFree: %08x\n", prevFree);
 #endif
-    if (prevFree > headOfMem && prevFree > freePages) {
-        prevFree = prevFree->llPages.pPrev;
-        nextFree->llPages.pPrev = prevFree;
-        prevFree->llPages.pNext = nextFree;
-    }
-#ifdef DEBUG
-    printf("freePages: %08x\n", freePages);
-    printf("currPage(-n): %08x(%08x)\n", currPage, currPage - n);
-#endif
-    //if we're taking from the head of freePages, reset it
-    //
-    if (currPage - n + 1 == freePages)
+
+    if (prevFree == NULL)
     {
         freePages = nextFree;
-
+        nextFree->llPages.pPrev = NULL;
 #ifdef DEBUG
         printf("freePages RESET to %08x\n", freePages);
 #endif
     }
-    
-    //TODO: fix this
+    else
+    {
+        nextFree->llPages.pPrev = (void*) prevFree;
+        prevFree->llPages.pNext = (void*) nextFree;
+    }
+
     //found pages -- move them to usedPages
     //put at beginning of list to minimize instructions required
-    currPage->llPages.pNext = usedPages;
-    usedPages->llPages.pPrev = currPage;
+    currPage->llPages.pNext = (void*) usedPages;
+    usedPages->llPages.pPrev = (void*) currPage;
     currPage = currPage - n;
     currPage->llPages.pPrev = NULL;
     usedPages = currPage;

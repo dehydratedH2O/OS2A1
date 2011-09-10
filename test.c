@@ -27,10 +27,10 @@ int main(int argc, char * argv[])
 
     printf("KernMemInit\n");
     KernMemInit();
-/*
     printf("testing memmgr.c\n");
     KernMemAllocPages(1);
     KernMemAllocPages(15);
+/*
     //alloc almost all pages
     void* testPage = KernMemAllocPages(NUMPAGES - 117);
     //try to alloc too many pages
