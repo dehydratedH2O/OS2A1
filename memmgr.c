@@ -106,13 +106,11 @@ void* KernMemAllocPages(int n)
         currPage = (void*) currPage->llPages.pNext;
     };
     
-    if (currPage->llPages.pNext == NULL && contig < n)
+    if (currPage == NULL && contig < n)
     {
         //couldn't find space
 #ifdef DEBUG
         printf("currPage: %08x\n", currPage);
-        printf("next: %08x\ncontig: %i/%i\n",
-                currPage->llPages.pNext, contig, n);
 #endif
 #ifdef STATUS
         printf("ERROR:\tcould not find %i contiguous pages\n", n);
@@ -161,13 +159,38 @@ void* KernMemAllocPages(int n)
 
 int KernMemFreePage(void *ptr)
 {
-    PMEMPAGE currPage = usedPages;
+    PMEMPAGE currPage = ptr;
     PMEMPAGE nextPage, prevPage;
 
 #ifdef STATUS
     printf("freeing %08x\n", ptr);
 #endif
 
+    //assume that it's valid and in the alloc'd list
+    nextPage = (void*) currPage->llPages.pNext;
+    prevPage = (void*) currPage->llPages.pPrev;
+
+    if (nextPage == NULL)
+    {
+        //last page in the list
+        prevPage->llPages.pNext = NULL;
+    } 
+    else if (prevPage == NULL)
+    {
+        //first page in the list
+        usedPages = nextPage;
+    }
+    else
+    {
+        //middle page
+        nextPage->llPages.pPrev = (void*) prevPage;
+        prevPage->llPages.pNext = (void*) nextPage;
+    }
+
+    currPage->llPages.pPrev = NULL;
+    currPage->llPages.pNext = (void *)freePages;
+    freePages = currPage;
+/*
 #ifdef STATUS
     printf("usedPages: %08x\ncurrPage: %08x\nnext: %08x\nprev: %08x\n",
             usedPages, currPage,
@@ -204,6 +227,7 @@ int KernMemFreePage(void *ptr)
         nextPage->llPages.pPrev = prevPage;
         prevPage->llPages.pNext = nextPage;
     }
+*/
 
 #ifdef STATUS
     printf("%08x freed\n", ptr);
